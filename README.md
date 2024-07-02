@@ -10,7 +10,7 @@ The DynStat Library is a lightweight, flexible utility for simulating dynamic st
 #define DYNSTAT_VERSION 1.00
 
 typedef struct {
-    float stat, maxStat, minStat, delta;
+    float stat, maxStat, minStat, statNegMultMod;
 
     int effectCount;
 
@@ -18,10 +18,14 @@ typedef struct {
 } DynStat;
 
 typedef struct DynStatEffect {
-    void (*procEffect) (float *rStat, float delta);
+    void (*procEffect) (float *rStat, float statNegMultMod);
 
     float statNegMultMod;
 } DynStatEffect;
+
+void dynstatInit(DynStat *dynstat, float stat, float max, float min)
+
+void dynstatInitSh(DynStat *dynstat, float max, float min)
 
 float dynstatGetStat(DynStat *dynstat)
 int dynstatGetStatRndf(DynStat *dynstat)
@@ -29,6 +33,7 @@ float dynstatGetMaxStat(DynStat *dynstat)
 float dynstatGetMinStat(DynStat *dynstat)
 int dynstatGetEffectCount(DynStat *dynstat)
 DynStatEffect *dynstatGetEffects(DynStat *dynstat)
+bool dynstatIsMax(DynStat *dynstat)
 bool dynstatIsMin(DynStat *dynstat)
 
 void dynstatSetStat(DynStat *dynstat, float stat)
@@ -37,8 +42,8 @@ void dynstatSubStat(DynStat *dynstat, float stat)
 
 int dynstatHasAnyEffect(DynStat *dynstat)
 
+void dynstatSetEffectNegMultMod(DynStat *dynstat, int effInd, float statNegMultMod)
 void dynstatAddEffect(DynStat *dynstat, DynStatEffect effect)
-
 void dynstatRemEffect(DynStat *dynstat, int effInd)
 
 void dynstatProc(DynStat *dynstat)
@@ -51,14 +56,16 @@ void dynstatFreeEffects(DynStat *dynstat)
 
 #include <stdio.h>
 
-void bleedingEffect(float *rStat, float delta) {
-    *rStat -= 1 * delta;
+void bleedingEffect(float *rStat, float statNegMultMod) {
+    *rStat -= 1 * statNegMultMod;
 }
 
 int main() {
-    DynStat dynstat = {100, 100, 0, 0, 0, NULL};
+    DynStat dynstat;
 
-    DynStatEffect bleed = {bleedingEffect, 0.0001f};
+    dynstatInitSh(&dynstat, 100, 0);
+
+    DynStatEffect bleed = {bleedingEffect, 0.001f};
 
     dynstatAddEffect(&dynstat, bleed);
 
