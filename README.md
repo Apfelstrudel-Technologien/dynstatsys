@@ -24,7 +24,6 @@ typedef struct DynStatEffect {
 } DynStatEffect;
 
 void dynstatInit(DynStat *dynstat, float stat, float max, float min)
-
 void dynstatInitSh(DynStat *dynstat, float max, float min)
 
 float dynstatGetStat(DynStat *dynstat)
