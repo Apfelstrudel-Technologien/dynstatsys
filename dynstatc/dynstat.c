@@ -10,7 +10,7 @@
 #define DYNSTAT_VERSION 1.00
 
 typedef struct {
-    float stat, maxStat, minStat, delta;
+    float stat, maxStat, minStat, statNegMultMod;
 
     int effectCount;
 
@@ -18,10 +18,23 @@ typedef struct {
 } DynStat;
 
 typedef struct DynStatEffect {
-    void (*procEffect) (float *rStat, float delta);
+    void (*procEffect) (float *rStat, float statNegMultMod);
 
     float statNegMultMod;
 } DynStatEffect;
+
+void dynstatInit(DynStat *dynstat, float stat, float max, float min) {
+    dynstat->stat = stat;
+    dynstat->maxStat = max;
+    dynstat->minStat = min;
+    dynstat->statNegMultMod = 0.1f;
+    dynstat->effectCount = 0;
+    dynstat->effects = NULL;
+}
+
+void dynstatInitSh(DynStat *dynstat, float max, float min) {
+    dynstatInit(dynstat, max, max, min);
+}
 
 float dynstatGetStat(DynStat *dynstat) { return dynstat->stat; }
 int dynstatGetStatRndf(DynStat *dynstat) { return (int) roundf(dynstat->stat); }
@@ -29,6 +42,7 @@ float dynstatGetMaxStat(DynStat *dynstat) { return dynstat->maxStat; }
 float dynstatGetMinStat(DynStat *dynstat) { return dynstat->minStat; }
 int dynstatGetEffectCount(DynStat *dynstat) { return dynstat->effectCount; }
 DynStatEffect *dynstatGetEffects(DynStat *dynstat) { return dynstat->effects; }
+bool dynstatIsMax(DynStat *dynstat) { return dynstat->stat >= dynstat->maxStat; }
 bool dynstatIsMin(DynStat *dynstat) { return dynstat->stat <= dynstat->minStat; }
 
 void dynstatSetStat(DynStat *dynstat, float stat) { dynstat->stat = (stat > dynstat->maxStat) ? dynstat->maxStat : (stat < dynstat->minStat) ? dynstat->minStat : stat; }
@@ -36,6 +50,14 @@ void dynstatAddStat(DynStat *dynstat, float stat) { dynstatSetStat(dynstat, dyns
 void dynstatSubStat(DynStat *dynstat, float stat) { dynstatSetStat(dynstat, dynstat->stat - stat); }
 
 int dynstatHasAnyEffect(DynStat *dynstat) { return dynstat->effectCount > 0; }
+
+void dynstatSetEffectNegMultMod(DynStat *dynstat, int effInd, float statNegMultMod) {
+    effInd = (effInd == FIRST_EFFECT) ? 0 : (effInd == LATEST_EFFECT) ? dynstat->effectCount - 1 : effInd;
+
+    if(effInd < 0 || effInd >= dynstat->effectCount) return;
+
+    dynstat->effects[effInd].statNegMultMod = statNegMultMod;
+}
 
 void dynstatAddEffect(DynStat *dynstat, DynStatEffect effect) {
     dynstat->effectCount++;
