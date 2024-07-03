@@ -73,7 +73,7 @@ int main() {
 
     dynstatInitSh(&dynstat, 100, 0);
 
-    DynStatEffect bleed = {bleedingEffect, 0.001f};
+    DynStatEffect bleed = {bleedingEffect, 0.001f, true};
 
     dynstatAddEffect(&dynstat, bleed);
 
