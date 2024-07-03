@@ -4,8 +4,8 @@ The DynStat Library is a lightweight, flexible utility for simulating dynamic st
 
 ```C``` Cheatsheet:
 ```c
-#define FIRST_EFFECT 0x16
-#define LATEST_EFFECT 0x32
+#define FIRST_EFFECT -0x1
+#define LATEST_EFFECT -0x2
 
 #define DYNSTAT_VERSION 1.00
 
@@ -21,6 +21,8 @@ typedef struct DynStatEffect {
     void (*procEffect) (float *rStat, float statNegMultMod);
 
     float statNegMultMod;
+
+    bool active;
 } DynStatEffect;
 
 void dynstatInit(DynStat *dynstat, float stat, float max, float min)
@@ -32,6 +34,7 @@ float dynstatGetMaxStat(DynStat *dynstat)
 float dynstatGetMinStat(DynStat *dynstat)
 int dynstatGetEffectCount(DynStat *dynstat)
 DynStatEffect *dynstatGetEffects(DynStat *dynstat)
+
 bool dynstatIsMax(DynStat *dynstat)
 bool dynstatIsMin(DynStat *dynstat)
 
@@ -41,13 +44,19 @@ void dynstatSubStat(DynStat *dynstat, float stat)
 
 int dynstatHasAnyEffect(DynStat *dynstat)
 
+void dynstatEffectSetActive(DynStat *dynstat, int effInd, bool active)
+
+void dynstatEffectEnable(DynStat *dynstat, int effInd)
+void dynstatEffectDisable(DynStat *dynstat, int effInd)
+
 void dynstatSetEffectNegMultMod(DynStat *dynstat, int effInd, float statNegMultMod)
+
 void dynstatAddEffect(DynStat *dynstat, DynStatEffect effect)
 void dynstatRemEffect(DynStat *dynstat, int effInd)
 
 void dynstatProc(DynStat *dynstat)
 
-void dynstatFreeEffects(DynStat *dynstat)
+void dynstatFree(DynStat *dynstat)
 ```
 
 ```c
@@ -74,7 +83,7 @@ int main() {
         printf("%d\n", dynstatGetStatRndf(&dynstat));
     }
 
-    dynstatFreeEffects(&dynstat);
+    dynstatFree(&dynstat);
 
     return 0;
 }
