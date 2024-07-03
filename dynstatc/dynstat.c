@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define FIRST_EFFECT 0x16
-#define LATEST_EFFECT 0x32
+#define FIRST_EFFECT -0x1
+#define LATEST_EFFECT -0x2
 
 #define DYNSTAT_VERSION 1.00
 
@@ -21,6 +21,8 @@ typedef struct DynStatEffect {
     void (*procEffect) (float *rStat, float statNegMultMod);
 
     float statNegMultMod;
+
+    bool active;
 } DynStatEffect;
 
 void dynstatInit(DynStat *dynstat, float stat, float max, float min) {
@@ -50,6 +52,22 @@ void dynstatAddStat(DynStat *dynstat, float stat) { dynstatSetStat(dynstat, dyns
 void dynstatSubStat(DynStat *dynstat, float stat) { dynstatSetStat(dynstat, dynstat->stat - stat); }
 
 int dynstatHasAnyEffect(DynStat *dynstat) { return dynstat->effectCount > 0; }
+
+void dynstatEffectSetActive(DynStat *dynstat, int effInd, bool active) {
+    effInd = (effInd == FIRST_EFFECT) ? 0 : (effInd == LATEST_EFFECT) ? dynstat->effectCount - 1 : effInd;
+
+    if(effInd < 0 || effInd >= dynstat->effectCount) return;
+
+    dynstat->effects[effInd].active = active;
+}
+
+void dynstatEffectEnable(DynStat *dynstat, int effInd) {
+    dynstatEffectSetActive(dynstat, effInd, true);
+}
+
+void dynstatEffectDisable(DynStat *dynstat, int effInd) {
+    dynstatEffectSetActive(dynstat, effInd, false);
+}
 
 void dynstatSetEffectNegMultMod(DynStat *dynstat, int effInd, float statNegMultMod) {
     effInd = (effInd == FIRST_EFFECT) ? 0 : (effInd == LATEST_EFFECT) ? dynstat->effectCount - 1 : effInd;
@@ -82,12 +100,14 @@ void dynstatRemEffect(DynStat *dynstat, int effInd) {
 
 void dynstatProc(DynStat *dynstat) {
     for(int effInd = 0; effInd < dynstat->effectCount; effInd++) {
-        dynstat->effects[effInd].procEffect(&(dynstat->stat), dynstat->effects[effInd].statNegMultMod);
+        if(dynstat->effects[effInd].active) {
+            dynstat->effects[effInd].procEffect(&(dynstat->stat), dynstat->effects[effInd].statNegMultMod);
 
-        dynstat->stat = (dynstat->stat > dynstat->maxStat) ?
-            dynstat->maxStat : (dynstat->stat < dynstat->minStat) ?
-                dynstat->minStat : dynstat->stat;
+            dynstat->stat = (dynstat->stat > dynstat->maxStat) ?
+                dynstat->maxStat : (dynstat->stat < dynstat->minStat) ?
+                    dynstat->minStat : dynstat->stat;
+        }
     }
 }
 
-void dynstatFreeEffects(DynStat *dynstat) { free(dynstat->effects); }
+void dynstatFree(DynStat *dynstat) { free(dynstat->effects); dynstat->effects = NULL; }
