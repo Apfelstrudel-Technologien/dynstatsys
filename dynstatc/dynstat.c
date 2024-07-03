@@ -1,4 +1,4 @@
-// Apfelstrudel Technologien Dynamic Stats System.
+// Apfelstrudel Technologien Dynamic Stats System. TODO: ID Support.
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -10,7 +10,7 @@
 #define DYNSTAT_VERSION 1.00
 
 typedef struct {
-    float stat, maxStat, minStat, statNegMultMod;
+    float stat, maxStat, minStat;
 
     int effectCount;
 
@@ -29,7 +29,6 @@ void dynstatInit(DynStat *dynstat, float stat, float max, float min) {
     dynstat->stat = stat;
     dynstat->maxStat = max;
     dynstat->minStat = min;
-    dynstat->statNegMultMod = 0.1f;
     dynstat->effectCount = 0;
     dynstat->effects = NULL;
 }
