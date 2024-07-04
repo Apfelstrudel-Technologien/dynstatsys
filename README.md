@@ -9,8 +9,6 @@ The Apfelstrudel Technologien Dynamic Statistics System (DynStat) is a C library
 
 #define DS_NO_ID -0x3
 
-#define DYNSTAT_VERSION 1.00
-
 typedef struct {
     float stat, maxStat, minStat;
 
@@ -37,8 +35,10 @@ float dynstatGetStat(DynStat *dynstat)
 int dynstatGetStatRndf(DynStat *dynstat)
 float dynstatGetMaxStat(DynStat *dynstat)
 float dynstatGetMinStat(DynStat *dynstat)
+
 int dynstatGetEffectCount(DynStat *dynstat)
 DynStatEffect *dynstatGetEffects(DynStat *dynstat)
+
 bool dynstatIsMax(DynStat *dynstat)
 bool dynstatIsMin(DynStat *dynstat)
 
