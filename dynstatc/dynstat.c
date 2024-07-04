@@ -10,8 +10,6 @@
 
 #define DS_NO_ID -0x3
 
-#define DYNSTAT_VERSION 1.00
-
 typedef struct {
     float stat, maxStat, minStat;
 
@@ -55,8 +53,10 @@ float dynstatGetStat(DynStat *dynstat) { return dynstat->stat; }
 int dynstatGetStatRndf(DynStat *dynstat) { return (int) roundf(dynstat->stat); }
 float dynstatGetMaxStat(DynStat *dynstat) { return dynstat->maxStat; }
 float dynstatGetMinStat(DynStat *dynstat) { return dynstat->minStat; }
+
 int dynstatGetEffectCount(DynStat *dynstat) { return dynstat->effectCount; }
 DynStatEffect *dynstatGetEffects(DynStat *dynstat) { return dynstat->effects; }
+
 bool dynstatIsMax(DynStat *dynstat) { return dynstat->stat >= dynstat->maxStat; }
 bool dynstatIsMin(DynStat *dynstat) { return dynstat->stat <= dynstat->minStat; }
 
