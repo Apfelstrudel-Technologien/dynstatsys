@@ -1,11 +1,14 @@
-// Apfelstrudel Technologien Dynamic Stats System. TODO: ID Support.
+// Apfelstrudel Technologien Dynamic Statistics System.
 
 #include <stdbool.h>
 #include <stdlib.h>
+
 #include <math.h>
 
-#define FIRST_EFFECT -0x1
-#define LATEST_EFFECT -0x2
+#define DS_FIRST_EFFECT -0x1
+#define DS_LATEST_EFFECT -0x2
+
+#define DS_NO_ID -0x3
 
 #define DYNSTAT_VERSION 1.00
 
@@ -23,6 +26,8 @@ typedef struct DynStatEffect {
     float statNegMultMod;
 
     bool active;
+
+    int id;
 } DynStatEffect;
 
 void dynstatInit(DynStat *dynstat, float stat, float max, float min) {
@@ -35,6 +40,20 @@ void dynstatInit(DynStat *dynstat, float stat, float max, float min) {
 
 void dynstatInitSh(DynStat *dynstat, float max, float min) {
     dynstatInit(dynstat, max, max, min);
+}
+
+void dynstatInitEffect(DynStatEffect *effect, void (*procEffect) (float *rStat, float statNegMultMod), float statNegMultMod, bool active, int id) {
+    effect->procEffect = procEffect;
+    effect->statNegMultMod = statNegMultMod;
+    effect->active = active;
+    effect->id = id;
+}
+
+void dynstatInitEffectSh(DynStatEffect *effect, void (*procEffect) (float *rStat, float statNegMultMod), float statNegMultMod) {
+    effect->procEffect = procEffect;
+    effect->statNegMultMod = statNegMultMod;
+    effect->active = true;
+    effect->id = DS_NO_ID;
 }
 
 float dynstatGetStat(DynStat *dynstat) { return dynstat->stat; }
@@ -50,26 +69,32 @@ void dynstatSetStat(DynStat *dynstat, float stat) { dynstat->stat = (stat > dyns
 void dynstatAddStat(DynStat *dynstat, float stat) { dynstatSetStat(dynstat, dynstat->stat + stat); }
 void dynstatSubStat(DynStat *dynstat, float stat) { dynstatSetStat(dynstat, dynstat->stat - stat); }
 
-int dynstatHasAnyEffect(DynStat *dynstat) { return dynstat->effectCount > 0; }
+DynStatEffect *dynstatGetEffectID(DynStat *dynstat, int id) {
+    for(int effInd=0; effInd < dynstat->effectCount; effInd++) {
+        if(dynstat->effects[effInd].id == id) {
+            return &dynstat->effects[effInd];
+        }
+    }
+
+    return NULL;
+}
+
+bool dynstatHasAnyEffect(DynStat *dynstat) { return dynstat->effectCount > 0; }
+bool dynstatHasEffectWithID(DynStat *dynstat, int id) { return dynstatGetEffectID(dynstat, id) != NULL; }
 
 void dynstatEffectSetActive(DynStat *dynstat, int effInd, bool active) {
-    effInd = (effInd == FIRST_EFFECT) ? 0 : (effInd == LATEST_EFFECT) ? dynstat->effectCount - 1 : effInd;
+    effInd = (effInd == DS_FIRST_EFFECT) ? 0 : (effInd == DS_LATEST_EFFECT) ? dynstat->effectCount - 1 : effInd;
 
     if(effInd < 0 || effInd >= dynstat->effectCount) return;
 
     dynstat->effects[effInd].active = active;
 }
 
-void dynstatEffectEnable(DynStat *dynstat, int effInd) {
-    dynstatEffectSetActive(dynstat, effInd, true);
-}
-
-void dynstatEffectDisable(DynStat *dynstat, int effInd) {
-    dynstatEffectSetActive(dynstat, effInd, false);
-}
+void dynstatEffectEnable(DynStat *dynstat, int effInd) { dynstatEffectSetActive(dynstat, effInd, true); }
+void dynstatEffectDisable(DynStat *dynstat, int effInd) { dynstatEffectSetActive(dynstat, effInd, false); }
 
 void dynstatSetEffectNegMultMod(DynStat *dynstat, int effInd, float statNegMultMod) {
-    effInd = (effInd == FIRST_EFFECT) ? 0 : (effInd == LATEST_EFFECT) ? dynstat->effectCount - 1 : effInd;
+    effInd = (effInd == DS_FIRST_EFFECT) ? 0 : (effInd == DS_LATEST_EFFECT) ? dynstat->effectCount - 1 : effInd;
 
     if(effInd < 0 || effInd >= dynstat->effectCount) return;
 
@@ -77,6 +102,8 @@ void dynstatSetEffectNegMultMod(DynStat *dynstat, int effInd, float statNegMultM
 }
 
 void dynstatAddEffect(DynStat *dynstat, DynStatEffect effect) {
+    effect.id = effect.id == DS_NO_ID ? dynstat->effectCount + 1 : effect.id;
+
     dynstat->effectCount++;
 
     dynstat->effects = realloc(dynstat->effects, dynstat->effectCount * sizeof(DynStatEffect));
@@ -84,7 +111,7 @@ void dynstatAddEffect(DynStat *dynstat, DynStatEffect effect) {
 }
 
 void dynstatRemEffect(DynStat *dynstat, int effInd) {
-    effInd = (effInd == FIRST_EFFECT) ? 0 : (effInd == LATEST_EFFECT) ? dynstat->effectCount - 1 : effInd;
+    effInd = (effInd == DS_FIRST_EFFECT) ? 0 : (effInd == DS_LATEST_EFFECT) ? dynstat->effectCount - 1 : effInd;
 
     if(effInd < 0 || effInd >= dynstat->effectCount) return;
 
@@ -108,5 +135,7 @@ void dynstatProc(DynStat *dynstat) {
         }
     }
 }
+
+float dynstatApplyMod(float stat, float mod) { return stat * mod; }
 
 void dynstatFree(DynStat *dynstat) { free(dynstat->effects); dynstat->effects = NULL; }
