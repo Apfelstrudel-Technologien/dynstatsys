@@ -25,9 +25,7 @@ typedef struct DynStatEffect {
 
     float statNegMultMod;
 
-    bool active;
-
-    int id;
+    bool active; int id;
 } DynStatEffect;
 
 void dynstatInit(DynStat *dynstat, float stat, float max, float min) {
@@ -50,10 +48,7 @@ void dynstatInitEffect(DynStatEffect *effect, void (*procEffect) (float *rStat, 
 }
 
 void dynstatInitEffectSh(DynStatEffect *effect, void (*procEffect) (float *rStat, float statNegMultMod), float statNegMultMod) {
-    effect->procEffect = procEffect;
-    effect->statNegMultMod = statNegMultMod;
-    effect->active = true;
-    effect->id = DS_NO_ID;
+    dynstatInitEffect(effect, procEffect, statNegMultMod, true, DS_NO_ID);
 }
 
 float dynstatGetStat(DynStat *dynstat) { return dynstat->stat; }
@@ -115,9 +110,7 @@ void dynstatRemEffect(DynStat *dynstat, int effInd) {
 
     if(effInd < 0 || effInd >= dynstat->effectCount) return;
 
-    for(int index = effInd; index < dynstat->effectCount - 1; index++) {
-        dynstat->effects[index] = dynstat->effects[index + 1];
-    }
+    for(int index = effInd; index < dynstat->effectCount - 1; index++) { dynstat->effects[index] = dynstat->effects[index + 1]; }
 
     dynstat->effectCount--;
 
