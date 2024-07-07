@@ -2,6 +2,9 @@ package dynstatj;
 
 import java.util.function.BiFunction;
 
+/**
+ * Dynamic statistic effect.
+ */
 public class DynStatEffect {
     public BiFunction<Float, Float, Float> procEffect;
 
