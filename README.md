@@ -88,3 +88,23 @@ int main() {
     dynstatFree(&dynstat); return 0;
 }
 ```
+
+Java:
+```java
+import dynstatj.DynStat;
+import dynstatj.DynStatEffect;
+
+public class Main {
+    public static void main(String[] args) {
+        DynStat dynstat = new DynStat(100, 0);
+
+        dynstat.addEffect(new DynStatEffect((stat, mod) -> { return stat - (1 * mod); }, 0.0001f));
+
+        while(true) {
+            dynstat.proc();
+
+            System.out.println(dynstat.getStatRndf());
+        }
+    }
+}
+```
